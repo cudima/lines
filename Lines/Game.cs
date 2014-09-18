@@ -15,7 +15,6 @@ namespace Lines
       Over
     };
 
-    GameState m_state;
     Point m_selectedPoint;
     ushort m_selectedColor;
 
@@ -46,14 +45,11 @@ namespace Lines
         {
           Stack<Point> path = m_board.FindPath(m_selectedPoint, p);
           if (null != path) {
-            // m_view.Select(m_selectedPoint, false);
+            m_board.ClearItem(m_selectedPoint);
+            m_board.PlaceItem(p, m_selectedColor);
+
             m_view.Move(path.ToArray(), m_selectedColor);
 
-            m_board.ClearItem(m_selectedPoint);
-            // m_view.Place(m_selectedPoint, 0);
-            m_board.PlaceItem(p, m_selectedColor);
-            // m_view.Place(p, m_selectedColor);
-            // move(path);
             m_selectedPoint = null;
           }
         }
@@ -64,11 +60,15 @@ namespace Lines
     {
       List<Point> lines = m_board.CheckLines(end);
       if (lines.Count > 0)
-        m_view.Disappear(lines);
+      {
+        foreach(Point p in lines)
+          m_board.ClearItem(p);
+
+        m_view.Disappear(lines.ToArray());
+      }
       else
         placeNext();
     }
-
 
     void placeNext()
     {
@@ -88,7 +88,7 @@ namespace Lines
       }
 
       if (lines.Count > 0)
-        m_view.Disappear(lines);
+        m_view.Disappear(lines.ToArray());
     }
 
     int checkLines(Point point)

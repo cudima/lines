@@ -57,7 +57,7 @@ namespace LinesTest
       Point p1 = new Point(0, 0);
       Point p2 = new Point(1, 1);
 
-      Assert.AreEqual<double>(p1.DistanceTo(p2), Math.Sqrt(2), "Distance unexpected");
+      Assert.AreEqual<double>(p1.DistanceTo(p2), 2, "Distance unexpected");
       Assert.AreEqual<double>(p1.DistanceTo(p2), p2.DistanceTo(p1), "Distance not equal in both directions");
 
       bool threwException = false;

@@ -25,7 +25,6 @@ namespace Lines
 
     Border[,] m_Borders;
     Rectangle[,] m_Rectangles;
-    Ellipse[,] m_Ellipses;
 
     Border m_MouseDownBorder;
 
@@ -36,6 +35,7 @@ namespace Lines
     ColorAnimation m_ca;
 
     Point[] m_movePath;
+    Point[] m_disappearPath;
     ushort m_moveColor;
 
     private SolidColorBrush[] m_ColorBrushes = {
@@ -55,19 +55,10 @@ namespace Lines
     private Style m_ColdBorderStyle;
     private Style m_HotBorderStyle;
 
-
-    public View(int numRows, int numCols, int numColors)
+    private Grid setupMainGrid()
     {
-
-      m_Rows = numRows;
-      m_Cols = numCols;
-
-      Title = "Square Lines";
-      Width = Height = 650;
-
       m_Borders = new Border[m_Rows, m_Cols];
       m_Rectangles = new Rectangle[m_Rows, m_Cols];
-      m_Ellipses = new Ellipse[m_Rows, m_Cols];
 
       Grid mainGrid = new Grid();
 
@@ -75,7 +66,7 @@ namespace Lines
       mainGrid.Height = m_Cols * m_CellHeight + m_Cols * 2;
 
       mainGrid.Background = m_ColorBrushes[0];
-      this.AddChild(mainGrid);
+      // this.AddChild(mainGrid);
 
       // mainGrid.ShowGridLines = true;
       for (int i = 0; i < m_Rows; i++)
@@ -96,7 +87,6 @@ namespace Lines
           b.MouseDown += mainGrid_MouseDown;
 
           Rectangle r = new Rectangle();
-
           // r.Fill = Brushes.Chocolate;
           // r.Opacity = .5;
           r.Fill = m_ColorBrushes[0];
@@ -110,22 +100,39 @@ namespace Lines
           mainGrid.Children.Add(b);
           m_Borders[i, j] = b;
           m_Rectangles[i, j] = r;
-
-          /*
-          Ellipse e = new Ellipse();
-          e.Width = 10;
-          e.Height = 10;
-          e.Fill = Brushes.Red;
-         
-          Grid.SetRow(e, i);
-          Grid.SetColumn(e, j);
-          Grid.SetZIndex(e, 1);
-
-          mainGrid.Children.Add(e);
-          m_Ellipses[i, j] = e;
-          */
         }
       }
+
+      return mainGrid;
+    }
+
+    private Menu setupMainMenu()
+    {
+      Menu menu = new Menu();
+      MenuItem mi = new MenuItem();
+      mi.Header = "_Debug";
+      menu.Items.Add(mi);
+      return menu;
+    }
+
+    public View(int numRows, int numCols, int numColors)
+    {
+      m_Rows = numRows;
+      m_Cols = numCols;
+
+      Title = "Square Lines";
+      Width = Height = 650;
+
+      DockPanel panel = new DockPanel();
+
+      Menu mainMenu = setupMainMenu();
+      DockPanel.SetDock(mainMenu, Dock.Top);
+      panel.Children.Add(mainMenu);
+
+      Grid mainGrid = setupMainGrid();
+      panel.Children.Add(mainGrid);
+
+      this.AddChild(panel);
 
       // game = Game.Instance;
 
@@ -248,16 +255,60 @@ namespace Lines
       br3.BeginAnimation(SolidColorBrush.ColorProperty, ca3);
     }
 
-    public void Disappear(List<Point> lines)
+    private void disappearAnimation_OnCompleted(object sender, EventArgs e)
     {
-      ColorAnimation ca1 = new ColorAnimation();
-      ca1.From = m_ColorBrushes[0].Color;
-      // ca1.From = Brushes.LightSteelBlue.Color;
-      ca1.To = m_ColorBrushes[m_moveColor].Color;
-      // ca1.To = Brushes.Red.Color;
-      ca1.Duration = new Duration(TimeSpan.FromMilliseconds(500));
+      foreach (Point p in m_disappearPath)
+        Place(p, 0);
     }
 
+    public void Disappear(Point[] lines)
+    {
+      m_disappearPath = lines;
+
+      var linesByBrush = new List<Point>[m_ColorBrushes.Length];
+      foreach (Point p in lines)
+      {
+        SolidColorBrush b = m_Rectangles[p.Row, p.Col].Fill as SolidColorBrush;
+        for (int i = 1; i < m_ColorBrushes.Length; i++)
+        {
+          if (b == m_ColorBrushes[i])
+          {
+            if (linesByBrush[i] == null)
+              linesByBrush[i] = new List<Point>();
+            linesByBrush[i].Add(p);
+            break;
+          }
+        }
+      }
+
+      bool first = true;
+      for (int i = 1; i < linesByBrush.Length; i++)
+      {
+        if (linesByBrush[i] == null)
+          continue;
+
+        ColorAnimation ca = new ColorAnimation();
+        ca.From = m_ColorBrushes[i].Color;
+        ca.To = m_ColorBrushes[0].Color;
+        ca.Duration = new Duration(TimeSpan.FromMilliseconds(500));
+        // ca1.From = Brushes.LightSteelBlue.Color;
+        // ca1.To = Brushes.Red.Color;
+
+        SolidColorBrush br = new SolidColorBrush();
+        br.Color = m_ColorBrushes[i].Color;
+
+        foreach (Point p in linesByBrush[i])
+          m_Rectangles[p.Row, p.Col].Fill = br;
+
+        if (first)
+        {
+          ca.Completed += disappearAnimation_OnCompleted;
+          first = false;
+        }
+
+        br.BeginAnimation(SolidColorBrush.ColorProperty, ca);
+      }
+    }
 
     public delegate void ViewEventHandler(object sender, Point p);
     public event ViewEventHandler OnClick;

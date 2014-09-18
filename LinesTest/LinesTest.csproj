@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="BoardTest.cs" />
     <Compile Include="PointTest.cs" />
+    <Compile Include="PQueueTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

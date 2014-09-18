@@ -67,27 +67,27 @@ namespace LinesTest
       Point input = new Point(0, 0);
       Point output;
 
-      PriorityQueue pqueue = new PriorityQueue(end, 1);
+      PriorityQueue pqueue = new PriorityQueue(end, 1, 0);
 
-      pqueue.Enqueue(input);
+      pqueue.Enqueue(input, 0);
       output = pqueue.Dequeue();
       Assert.AreSame(input, output);
 
       output = pqueue.Dequeue();
       Assert.IsNull(output);
 
-      pqueue.Enqueue(input);
+      pqueue.Enqueue(input, 0);
       output = pqueue.Dequeue();
       Assert.AreSame(input, output);
 
-      pqueue.Enqueue(end);
+      pqueue.Enqueue(end, 0);
       output = pqueue.Dequeue();
       Assert.AreSame(end, output);
 
       try
       {
-        pqueue.Enqueue(input);
-        pqueue.Enqueue(input);
+        pqueue.Enqueue(input, 0);
+        pqueue.Enqueue(input, 0);
       }
       catch (Exception e)
       {
@@ -107,11 +107,11 @@ namespace LinesTest
       Point input3 = new Point(6, 5);
       Point input4 = new Point(3, 7);
 
-      PriorityQueue pqueue = new PriorityQueue(end, 4);
-      pqueue.Enqueue(input4);
-      pqueue.Enqueue(input2);
-      pqueue.Enqueue(input3);
-      pqueue.Enqueue(input1);
+      PriorityQueue pqueue = new PriorityQueue(end, 4, 0);
+      pqueue.Enqueue(input4, 0);
+      pqueue.Enqueue(input2, 0);
+      pqueue.Enqueue(input3, 0);
+      pqueue.Enqueue(input1, 0);
 
       Assert.AreSame(pqueue.Dequeue(), input1);
       Assert.AreSame(pqueue.Dequeue(), input2);
